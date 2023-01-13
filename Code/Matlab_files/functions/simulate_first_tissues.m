@@ -1,0 +1,23 @@
+function [Chimap3] = simulate_first_tissues(Mask_smooth, LG_mask_index, indexes, R2s, R1, chiref, R2star2chi, R1only2chi, R12chi, Chimap3, Chimap4, smoothThresh, smoothThresh2, NSTD)
+tissue=...
+    R2star2chi*(R2s(LG_mask_index)-mean(R2s(indexes)))+...
+    R12chi*(R1(LG_mask_index)-mean(R1(indexes)));
+
+% trying to find a way to avoid creating outlyers because of errors on the R2* and R1 maps...
+modulation_std = std(tissue(Mask_smooth(LG_mask_index)>smoothThresh));
+modulation_mean = mean(tissue(Mask_smooth(LG_mask_index)>smoothThresh));
+% makes all the outliers have the average value of the segmented tissue
+tissue(and(Mask_smooth(LG_mask_index)>smoothThresh2,...
+    abs(tissue-modulation_mean)>NSTD*modulation_std))=modulation_mean;
+
+Chimap3(LG_mask_index)=Chimap3(LG_mask_index)+Mask_smooth(LG_mask_index)...
+    .*(chiref + tissue);
+
+% does the all R1 based method
+
+% tissue=R1only2chi*(R1(LG_mask_index)-mean(R1(indexes)));
+% 
+% % trying to find a way to avoid creating outlyers because of errors on the R2* and R1 maps...
+% Chimap4(LG_mask_index)=Chimap4(LG_mask_index)+Mask_smooth(LG_mask_index)...
+%     .*(chiref + tissue);
+end
